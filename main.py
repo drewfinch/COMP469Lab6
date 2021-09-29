@@ -21,7 +21,8 @@ def get_successors(tree):
     return children
 
 
-def max(numbers):
+### The max and min functions cannot be called max or min because they are reserved functions!
+def maximize(numbers):
     v = -INFINITY
 
     for each successor of state:
@@ -29,13 +30,11 @@ def max(numbers):
     return v
 
 
-def min(numbers):
+def minimize(numbers):
     return 0
 
 
-def print_winner(min_score, max_score):
-    print("hi")
-
+def checkWinner(maxScore, minScore)
 
 numbers = [1, 2, 5, 2]
 min_score = 0
