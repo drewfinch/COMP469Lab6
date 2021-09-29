@@ -81,14 +81,14 @@ def checkWinner(maxScore, minScore):
     return (maxWon, tie)
 
 #Start Misc. Functions --------------------------------------------------------
-def scanFile(file, numbers):
+def scanFile(file):
     data = file.read().replace(' ', '').split(",")
         
     numbers = list(map(int, data))
     
     return numbers
 
-def scanInput(strIn, numbers):
+def scanInput(strIn):
     data = strIn.replace(' ', '').split(",")
     
     numbers = list(map(int, data))
@@ -104,10 +104,14 @@ option = input("manuel or file input?\n")
 
 if (option.lower() == "file"):
     print("Give a file path to a list of numbers\nThe numbers should be seperated with commas")
-    input("File Path:\n")
+    filePath = input("File Path:\n")
+    
+    f = open(filePath, 'r')
+    numbers = scanFile(f)
+    f.close()
 else:
     print("Give a list of numbers\nThe numbers should be seperated with commas")
-    input("List:\n")
+    numbers = scanInput(input("List:\n"))
     
 scores = play(numbers) #(max_score, min_score)
 
