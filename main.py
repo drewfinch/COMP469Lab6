@@ -1,3 +1,5 @@
+# @authors: Christopher Chang, Danial Thai, Drew Finch
+
 # Two players (Max, Min) are given a list of numbers, e.g. [1,2,5,2]
 # 1. The players take turn in picking a number from either the beginning or the end of the
 # list.
