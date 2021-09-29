@@ -44,14 +44,16 @@ def play(numbers):
     maxScore = 0
     minScore = 0
     
+    currNode = None
+    
     gameEnded = isEmpty(numbers)
     
     while (not gameEnded):
         maxChoice = maximize(numCpy)            #asserts that that maximize will return the choice branch that will make max win
         if (maxChoice == numCpy[0]):    #numbers is automatically decreased each choice, just worry about getting the ideal path from a given state of numbers
-            numCpy = numCpy[1:]
+            currNode = Node(numCpy.pop(0), currNode)
         else:
-            numCpy = numCpy[:len(numCpy)-1]
+            currNode = Node(numCpy.pop(), currNode)
         maxScore += maxChoice
         
         gameEnded = isEmpty(numCpy)
@@ -59,15 +61,16 @@ def play(numbers):
         if (not gameEnded):
             minChoice = minimize(numCpy)        #asserts that minimize will return the choice branch that will make max lose
             if (minChoice == numCpy[0]):
-                numCpy = numCpy[1:]
+                currNode = Node(numCpy.pop(0), currNode)
             else:
-                numCpy = numCpy[:len(numCpy)-1]
+                currNode = Node(numCpy.pop(), currNode)
             minScore += minChoice
             
         gameEnded = isEmpty(numCpy)
         
-        return (maxScore, -minScore)
+        return (maxScore, -minScore, currNode)
 
+#determines who won
 def checkWinner(maxScore, minScore):
     maxWon = False
     tie = False
@@ -94,6 +97,27 @@ def scanInput(strIn):
     numbers = list(map(int, data))
     
     return numbers
+
+def printPath(lastNode, numbers):
+    numCpy = copy.deepcopy(numbers)
+    path = []
+    currNode = lastNode
+    
+    while (currNode.parent != None):
+        path.append(currNode.data)
+        currNode = currNode.parent
+        
+    path.reverse()
+    
+    print("Path:")
+    for e in path:
+        if (e == numCpy[0]):
+            numCpy.pop(0)
+        else:
+            numCpy.pop()
+            
+        print(numCpy)
+        
 #End Misc. Functions ----------------------------------------------------------
 
 
@@ -116,6 +140,8 @@ else:
 scores = play(numbers) #(max_score, min_score)
 
 winState = checkWinner(scores[0], scores[1])
+
+printPath(scores[2])
 
 if (winState[0]):
     print("The maximizer won")
