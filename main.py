@@ -1,16 +1,5 @@
 # @authors: Christopher Chang, Danial Thai, Drew Finch
-
-# Minimax Game:
-# Two players (Max, Min) are given a list of numbers, e.g. [1,2,5,2]
-# 1. The players take turn in picking a number from either the beginning or the end of the
-# list.
-# 2. Max starts first.
-# 3. The game is over when there are no more numbers left in the list.
-# 4. Winner: the player with more collected points
-# 5. Min and Max both play optimally
 INFINITY = 100000000000
-
-import copy
 
 
 class Node:
@@ -19,133 +8,92 @@ class Node:
         self.children = []
         self.data = data
 
-def get_successors(tree):
-    children = []
-    return children
 
-def isEmpty(numbers):
-    return len(numbers) == 0
-
-### The max and min functions cannot be called max or min because they are reserved functions!
-def maximize(numbers):
-    v = -INFINITY
-
-    # for each successor of state:
-    #     v = max(v, min - value(successor))
-    return v
+def make_tree(numbers):
+    root = Node(0, None)
+    make_tree_recursive(numbers, root)
+    return root
 
 
-def minimize(numbers):
-    return 0
+def make_tree_recursive(numbers, node):
+    if len(numbers) > 1:
+        numbers_copy1 = numbers.copy()
+        child1 = Node(numbers_copy1.pop(0), node)
+        node.children.append(child1)
+        make_tree_recursive(numbers_copy1, child1)
 
-#driver code that runs minimize and maximize
-def play(numbers):
-    numCpy = copy.deepcopy(numbers)
-    maxScore = 0
-    minScore = 0
-    
-    currNode = None
-    
-    gameEnded = isEmpty(numbers)
-    
-    while (not gameEnded):
-        maxChoice = maximize(numCpy)            #asserts that that maximize will return the choice branch that will make max win
-        if (maxChoice == numCpy[0]):    #numbers is automatically decreased each choice, just worry about getting the ideal path from a given state of numbers
-            currNode = Node(numCpy.pop(0), currNode)
-        else:
-            currNode = Node(numCpy.pop(), currNode)
-        maxScore += maxChoice
-        
-        gameEnded = isEmpty(numCpy)
-        
-        if (not gameEnded):
-            minChoice = minimize(numCpy)        #asserts that minimize will return the choice branch that will make max lose
-            if (minChoice == numCpy[0]):
-                currNode = Node(numCpy.pop(0), currNode)
-            else:
-                currNode = Node(numCpy.pop(), currNode)
-            minScore += minChoice
-            
-        gameEnded = isEmpty(numCpy)
-        
-        return (maxScore, -minScore, currNode)
-
-#determines who won
-def checkWinner(maxScore, minScore):
-    maxWon = False
-    tie = False
-    scoreSum = maxScore + minScore
-    
-    if (scoreSum > 0):
-        maxWon = True
-    elif (scoreSum == 0):
-        tie = True
-    
-    return (maxWon, tie)
-
-#Start Misc. Functions --------------------------------------------------------
-def scanFile(file):
-    data = file.read().replace(' ', '').split(",")
-        
-    numbers = list(map(int, data))
-    
-    return numbers
-
-def scanInput(strIn):
-    data = strIn.replace(' ', '').split(",")
-    
-    numbers = list(map(int, data))
-    
-    return numbers
-
-def printPath(lastNode, numbers):
-    numCpy = copy.deepcopy(numbers)
-    path = []
-    currNode = lastNode
-    
-    while (currNode.parent != None):
-        path.append(currNode.data)
-        currNode = currNode.parent
-        
-    path.reverse()
-    
-    print("Path:")
-    for e in path:
-        if (e == numCpy[0]):
-            numCpy.pop(0)
-        else:
-            numCpy.pop()
-            
-        print(numCpy)
-        
-#End Misc. Functions ----------------------------------------------------------
+        numbers_copy2 = numbers.copy()
+        child2 = Node(numbers_copy2.pop(-1), node)
+        node.children.append(child2)
+        make_tree_recursive(numbers_copy2, child2)
 
 
-numbers = [1, 2, 5, 2]
+def is_leaf(node):
+    return len(node.children) == 0
 
-##uncomment these lines of code to test different input
-option = input("manuel or file input?\n")
 
-if (option.lower() == "file"):
-    print("Give a file path to a list of numbers\nThe numbers should be seperated with commas")
-    filePath = input("File Path:\n")
-    
-    f = open(filePath, 'r')
-    numbers = scanFile(f)
-    f.close()
-else:
-    print("Give a list of numbers\nThe numbers should be seperated with commas")
-    numbers = scanInput(input("List:\n"))
-    
-scores = play(numbers) #(max_score, min_score)
+def maximize(node):
+    if is_leaf(node):
+        return node
+    max_node = None
+    max_score = -INFINITY
 
-winState = checkWinner(scores[0], scores[1])
+    for child in node.children:
+        score = minimize(child).data
+        if score > max_score:
+            max_node = child
+            max_score = score
 
-printPath(scores[2])
+    return max_node
 
-if (winState[0]):
-    print("The maximizer won")
-elif (winState[1]):
-    print("Tie!")
-else:
-    print("The maximizer lost")
+
+def minimize(node):
+    if is_leaf(node):
+        return node
+    min_node = None
+    min_score = INFINITY
+
+    for child in node.children:
+        score = maximize(child).data
+        if score < min_score:
+            min_node = child
+            min_score = score
+
+    return min_node
+
+
+def print_winner(max_score, min_score):
+    print("MAX: ", max_score)
+    print("MIN: ", min_score)
+    if max_score > min_score:
+        print("MAX WINS")
+    elif min_score > max_score:
+        print("MIN WINS")
+    else:
+        print("TIE")
+
+def get_nums():
+    # TODO add user input
+    return [1, 2, 5, 2]
+
+
+nums = get_nums()
+root = make_tree(nums)
+min_score = 0
+max_score = 0
+is_max_turn = True
+
+
+while not is_leaf(root):
+    if is_max_turn:
+        turn = maximize(root)
+        max_score = max_score + turn.data
+        is_max_turn = False
+        root = turn
+    else:
+        turn = minimize(root)
+        min_score = min_score + turn.data
+        is_max_turn = True
+        root = turn
+
+print_winner(min_score, max_score)
