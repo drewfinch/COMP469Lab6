@@ -1,4 +1,4 @@
-# @authors: Christopher Chang, Danial Thai, Drew Finch
+# @authors: Christopher Chang, Daniel Thai, Drew Finch
 INFINITY = 100000000000
 
 
