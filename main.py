@@ -152,7 +152,7 @@ scores = play(numbers) #(max_score, min_score)
 
 winState = checkWinner(scores[0], scores[1])
 
-printPath(scores[2])
+printPath(scores[2], numbers)
 
 if (winState[0]):
     print("The maximizer won")
