@@ -32,11 +32,22 @@ def maximize(numbers):
 
     # for each successor of state:
     #     v = max(v, min - value(successor))
+    max_num = numbers[0]
+    for i in numbers:
+        if i > max_num:
+            max_num = i
+        v = max_num
     return v
 
 
 def minimize(numbers):
-    return 0
+    v = INFINITY
+    min_num = numbers[-1]
+    for i in numbers:
+        if i < min_num:
+            min_num = i
+        v = min_num
+    return v
 
 #driver code that runs minimize and maximize
 def play(numbers):
