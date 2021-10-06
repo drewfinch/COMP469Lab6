@@ -16,7 +16,6 @@ import copy
 class Node:
     def __init__(self, data, parent):
         self.parent = parent
-        self.children = []
         self.data = data
 
 def get_successors(tree):
@@ -79,7 +78,7 @@ def play(numbers):
             
         gameEnded = isEmpty(numCpy)
         
-        return (maxScore, -minScore, currNode)
+    return (maxScore, -minScore, currNode)
 
 #determines who won
 def checkWinner(maxScore, minScore):
@@ -117,6 +116,8 @@ def printPath(lastNode, numbers):
     while (currNode.parent != None):
         path.append(currNode.data)
         currNode = currNode.parent
+        
+    path.append(currNode.data)
         
     path.reverse()
     
