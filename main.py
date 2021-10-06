@@ -14,69 +14,127 @@ import copy
 
 
 class Node:
-    def __init__(self, data, parent):
+    def __init__(self, data, parent, utilScore=0):
+        self.parent = parent
+        self.children = []
+        self.data = data
+        self.utilScore = utilScore
+        
+class retNode:
+    def __init__(self, data, parent, direction=None):
         self.parent = parent
         self.data = data
+        self.dir = direction
 
 def get_successors(tree):
     children = []
     return children
 
 def isEmpty(numbers):
-    return len(numbers) == 0
+    return len(numbers) == 1
+
+
+def make_tree(numbers):
+    root = Node(0, None)
+    make_tree_recursive(numbers, root)
+    return root
+
+def make_tree_recursive(numbers, node):
+    if len(numbers) > 1:
+        numbers_copy1 = numbers.copy()
+        child1 = Node(numbers_copy1.pop(0), node)
+        node.children.append(child1)
+        make_tree_recursive(numbers_copy1, child1)
+
+        numbers_copy2 = numbers.copy()
+        child2 = Node(numbers_copy2.pop(-1), node)
+        node.children.append(child2)
+        make_tree_recursive(numbers_copy2, child2)
+    # elif len(numbers) == 1:
+    #     numbers_copy1 = numbers.copy()
+    #     child1 = Node(numbers_copy1.pop(0), node)
+    #     node.children.append(child1)
+
+
+def is_leaf(node):
+    return len(node.children) == 0
 
 ### The max and min functions cannot be called max or min because they are reserved functions!
-def maximize(numbers):
-    v = -INFINITY
+def maximize(node):
+    if is_leaf(node):
+        node.utilScore = node.data
+        return node
+    max_node = None
+    max_score = -INFINITY
 
-    # for each successor of state:
-    #     v = max(v, min - value(successor))
-    max_num = numbers[0]
-    for i in numbers:
-        if i > max_num:
-            max_num = i
-        v = max_num
-    return v
+    for child in node.children:
+        score = minimize(child).utilScore
+        if score > max_score:
+            max_node = child
+            max_score = score
+
+    return max_node
 
 
-def minimize(numbers):
-    v = INFINITY
-    min_num = numbers[-1]
-    for i in numbers:
-        if i < min_num:
-            min_num = i
-        v = min_num
-    return v
+def minimize(node):
+    if is_leaf(node):
+        node.utilScore = node.data
+        return node
+    min_node = None
+    min_score = INFINITY
+
+    for child in node.children:
+        score = maximize(child).data
+        child.utilScore = score
+        if score < min_score:
+            min_node = child
+            min_score = score
+
+    return min_node
 
 #driver code that runs minimize and maximize
+#@return (maxScore, minScore, pathTree)
 def play(numbers):
     numCpy = copy.deepcopy(numbers)
+    root = make_tree(numbers)
     maxScore = 0
     minScore = 0
+    maxTurn = True
     
     currNode = None
     
     gameEnded = isEmpty(numbers)
     
     while (not gameEnded):
-        maxChoice = maximize(numCpy)            #asserts that that maximize will return the choice branch that will make max win
+        root = maximize(root)
+        maxChoice = root.data
         if (maxChoice == numCpy[0]):    #numbers is automatically decreased each choice, just worry about getting the ideal path from a given state of numbers
-            currNode = Node(numCpy.pop(0), currNode)
+            currNode = retNode(numCpy.pop(0), currNode, "left")
         else:
-            currNode = Node(numCpy.pop(), currNode)
+            currNode = retNode(numCpy.pop(), currNode, "right")
         maxScore += maxChoice
         
         gameEnded = isEmpty(numCpy)
+        maxTurn = False
         
         if (not gameEnded):
-            minChoice = minimize(numCpy)        #asserts that minimize will return the choice branch that will make max lose
+            root = minimize(root)
+            minChoice = root.data
             if (minChoice == numCpy[0]):
-                currNode = Node(numCpy.pop(0), currNode)
+                currNode = retNode(numCpy.pop(0), currNode, "left")
             else:
-                currNode = Node(numCpy.pop(), currNode)
+                currNode = retNode(numCpy.pop(), currNode, "right")
             minScore += minChoice
+            maxTurn = True
             
-        gameEnded = isEmpty(numCpy)
+            gameEnded = isEmpty(numCpy)
+        
+    if maxTurn:
+        currNode = retNode(numCpy.pop(), currNode, "left")
+        maxScore += currNode.data
+    else:
+        currNode = retNode(numCpy.pop(), currNode, "left")
+        minScore += currNode.data
         
     return (maxScore, -minScore, currNode)
 
@@ -114,21 +172,40 @@ def printPath(lastNode, numbers):
     currNode = lastNode
     
     while (currNode.parent != None):
-        path.append(currNode.data)
+        path.append((currNode.data, currNode.dir))
         currNode = currNode.parent
         
-    path.append(currNode.data)
+    path.append((currNode.data, currNode.dir))
         
     path.reverse()
     
+    maxScore = 0
+    minScore = 0
+    maxTurn = True
+    
     print("Path:")
-    for e in path:
-        if (e == numCpy[0]):
-            numCpy.pop(0)
+    print(numCpy)
+    for e in path:    #With the way the ai works, we cannot get the proper pathing for the choices. This gives wrong results
+        if (e[1] == "left"):
+            if maxTurn:
+                maxScore += numCpy.pop(0)
+                maxTurn = False
+            else:
+                minScore -= numCpy.pop(0)
+                maxTurn = True
         else:
-            numCpy.pop()
+            if maxTurn:
+                maxScore += numCpy.pop()
+                maxTurn = False
+            else:
+                minScore -= numCpy.pop()
+                maxTurn = True
             
-        print(numCpy)
+        print("{}\t\tMax = {} Min = {}".format(numCpy, maxScore, minScore))
+        
+def printScore(maxScore, minScore):
+    print("MAX:\t{}".format(maxScore))
+    print("MIN:\t{}".format(minScore))
         
 #End Misc. Functions ----------------------------------------------------------
 
@@ -149,11 +226,13 @@ else:
     print("Give a list of numbers\nThe numbers should be seperated with commas")
     numbers = scanInput(input("List:\n"))
     
-scores = play(numbers) #(max_score, min_score)
+scores = play(numbers) #(max_score, min_score, path)
 
 winState = checkWinner(scores[0], scores[1])
 
-printPath(scores[2], numbers)
+#printPath(scores[2], numbers)  #Gives wrong results
+
+printScore(scores[0], scores[1])
 
 if (winState[0]):
     print("The maximizer won")
